@@ -1,7 +1,8 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Html exposing (Html, button, div, text)
+import Html exposing (a, button, div, footer, h1, h2, header, main_, p, section, text)
+import Html.Attributes exposing (href, style, target)
 import Html.Events exposing (onClick)
 
 
@@ -24,8 +25,29 @@ update msg model =
 
 
 view model =
-    div []
-        [ button [ onClick Decrement ] [ text "-" ]
+    main_ [ style "padding" "8px", style "margin" "auto", style "width" "100%", style "max-width" "500px" ]
+        [ header []
+            [ h1 [] [ text "Division" ]
+            , p [] [ text "While sharing a payment, how much each people will pay?" ]
+            ]
+        , section []
+            [ h2 [] [ text "People" ]
+            , p [] [ text "TODO." ]
+            ]
+        , section []
+            [ h2 [] [ text "Amounts" ]
+            , p [] [ text "TODO." ]
+            ]
+        , section []
+            [ h2 [] [ text "Results" ]
+            , p [] [ text "TODO." ]
+            ]
+        , button [ onClick Decrement ] [ text "-" ]
         , div [] [ text (String.fromInt model) ]
         , button [ onClick Increment ] [ text "+" ]
+        , footer []
+            [ text "It's "
+            , a [ href "https://github.com/MazuhSoftwares/division", target "_blank" ] [ text "free source" ]
+            , text "!"
+            ]
         ]
