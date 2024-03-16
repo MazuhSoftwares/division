@@ -1,27 +1,91 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Html exposing (a, button, div, footer, h1, h2, header, main_, p, section, text)
-import Html.Attributes exposing (href, style, target)
+import Html exposing (Html, a, button, div, footer, h1, h2, header, input, main_, p, section, text)
+import Html.Attributes exposing (href, placeholder, style, target, type_, value)
 import Html.Events exposing (onClick)
 
 
-main =
-    Browser.sandbox { init = 0, update = update, view = view }
+type alias Person =
+    { id : Int
+    , name : String
+    }
+
+
+type alias Amount =
+    { quantity : Int
+    , name : String
+    , unitPrice : Float
+    , personId : Int
+    }
+
+
+type alias Model =
+    { people : List Person
+    , nextPersonId : Int
+    , amounts : List Amount
+    }
+
+
+init : Model
+init =
+    { people =
+        [ Person 1 ""
+        , Person 2 ""
+        ]
+    , nextPersonId = 2
+    , amounts =
+        [ Amount 1 "" 0 0
+        ]
+    }
 
 
 type Msg
-    = Increment
-    | Decrement
+    = AddPerson
+    | RemovePerson Int
 
 
+update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Increment ->
-            model + 1
+        AddPerson ->
+            let
+                currentPersonId =
+                    model.nextPersonId
 
-        Decrement ->
-            model - 1
+                nextPersonId =
+                    model.nextPersonId + 1
+
+                adding =
+                    Person currentPersonId ""
+
+                updatedPeople =
+                    List.append model.people [ adding ]
+            in
+            { model | people = updatedPeople, nextPersonId = nextPersonId }
+
+        RemovePerson id ->
+            let
+                updatedPeople =
+                    List.filter (\person -> person.id /= id) model.people
+            in
+            { model | people = updatedPeople }
+
+
+main =
+    Browser.sandbox { init = init, update = update, view = view }
+
+
+viewPersonInput : Person -> Html Msg
+viewPersonInput person =
+    let
+        removeThisPerson =
+            RemovePerson person.id
+    in
+    div []
+        [ input [ type_ "text", value person.name, placeholder ("Person " ++ String.fromInt person.id) ] []
+        , button [ onClick removeThisPerson ] [ text "-" ]
+        ]
 
 
 view model =
@@ -32,7 +96,10 @@ view model =
             ]
         , section []
             [ h2 [] [ text "People" ]
-            , p [] [ text "TODO." ]
+            , div []
+                [ div [] (List.map viewPersonInput model.people)
+                , button [ onClick AddPerson ] [ text "+" ]
+                ]
             ]
         , section []
             [ h2 [] [ text "Amounts" ]
@@ -42,9 +109,6 @@ view model =
             [ h2 [] [ text "Results" ]
             , p [] [ text "TODO." ]
             ]
-        , button [ onClick Decrement ] [ text "-" ]
-        , div [] [ text (String.fromInt model) ]
-        , button [ onClick Increment ] [ text "+" ]
         , footer []
             [ text "It's "
             , a [ href "https://github.com/MazuhSoftwares/division", target "_blank" ] [ text "free source" ]
