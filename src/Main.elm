@@ -100,6 +100,7 @@ update msg model =
             { model | amounts = updatedAmounts }
 
 
+main : Program () Model Msg
 main =
     Browser.sandbox { init = init, update = update, view = view }
 
@@ -131,6 +132,7 @@ viewAmountItem amount =
         ]
 
 
+view : Model -> Html Msg
 view model =
     main_ [ style "padding" "8px", style "margin" "auto", style "width" "100%", style "max-width" "500px" ]
         [ header []
