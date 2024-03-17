@@ -1,8 +1,8 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Html exposing (Html, a, button, div, footer, h1, h2, header, input, main_, p, section, text)
-import Html.Attributes exposing (href, placeholder, style, target, type_, value)
+import Html exposing (Html, a, button, div, footer, h1, h2, header, input, label, main_, p, section, text)
+import Html.Attributes exposing (for, href, id, placeholder, step, style, target, type_, value)
 import Html.Events exposing (onClick)
 
 
@@ -33,7 +33,7 @@ init : Model
 init =
     { people =
         [ { id = 1, name = "" }
-        , { id = 1, name = "" }
+        , { id = 2, name = "" }
         ]
     , nextPersonId = 3
     , amounts =
@@ -112,8 +112,18 @@ viewPersonItem person =
             RemovePerson person.id
     in
     div []
-        [ input [ type_ "text", value person.name, placeholder ("Person " ++ String.fromInt person.id) ] []
-        , button [ onClick removeThisPerson ] [ text "-" ]
+        [ input
+            [ type_ "text"
+            , value person.name
+            , placeholder ("Person " ++ String.fromInt person.id)
+            , style "margin-right" "8px"
+            ]
+            []
+        , button
+            [ onClick removeThisPerson
+            , style "margin-left" "4px"
+            ]
+            [ text "−" ]
         ]
 
 
@@ -124,17 +134,56 @@ viewAmountItem amount =
             RemoveAmount amount.id
     in
     div []
-        [ input [ type_ "number", value (String.fromFloat amount.unitPrice) ] []
-        , text "x "
-        , input [ type_ "text", value amount.name, placeholder ("Item " ++ String.fromInt amount.id) ] []
-        , input [ type_ "number", value (String.fromInt amount.quantity) ] []
-        , button [ onClick removeThisAmount ] [ text "-" ]
+        [ input
+            [ id ("quantity_input_" ++ String.fromInt amount.id)
+            , type_ "number"
+            , value (String.fromInt amount.quantity)
+            , step "1"
+            , Html.Attributes.min "0"
+            , Html.Attributes.max "99"
+            ]
+            []
+        , label
+            [ for ("quantity_input_" ++ String.fromInt amount.id), style "margin-right" "8px" ]
+            [ text "x" ]
+        , input
+            [ type_ "text"
+            , value amount.name
+            , placeholder ("Item " ++ String.fromInt amount.id)
+            , style "margin-right" "8px"
+            ]
+            []
+        , label [ for ("unit_price_input_" ++ String.fromInt amount.id) ]
+            [ text "$" ]
+        , input
+            [ id ("unit_price_input_" ++ String.fromInt amount.id)
+            , type_ "number"
+            , value (String.fromFloat amount.unitPrice)
+            , placeholder "0.00"
+            , step "0.01"
+            , Html.Attributes.min "0"
+            , Html.Attributes.max "999999.99"
+            , style "margin-right" "8px"
+            ]
+            []
+        , button
+            [ onClick removeThisAmount
+            , style "margin-left" "4px"
+            ]
+            [ text "−" ]
         ]
 
 
 view : Model -> Html Msg
 view model =
-    main_ [ style "padding" "8px", style "margin" "auto", style "width" "100%", style "max-width" "500px" ]
+    main_
+        [ style "padding" "8px"
+        , style "margin" "auto"
+        , style "box-sizing" "border-box"
+        , style "width" "100vw"
+        , style "max-width" "500px"
+        , style "overflow" "hidden"
+        ]
         [ header []
             [ h1 [] [ text "Division" ]
             , p [] [ text "While sharing a payment, how much each people will pay?" ]
@@ -143,14 +192,22 @@ view model =
             [ h2 [] [ text "People" ]
             , div []
                 [ div [] (List.map viewPersonItem model.people)
-                , button [ onClick AddPerson ] [ text "+" ]
+                , button
+                    [ onClick AddPerson
+                    , style "margin-top" "8px"
+                    ]
+                    [ text "+" ]
                 ]
             ]
         , section []
             [ h2 [] [ text "Amounts" ]
             , div []
                 [ div [] (List.map viewAmountItem model.amounts)
-                , button [ onClick AddAmount ] [ text "+" ]
+                , button
+                    [ onClick AddAmount
+                    , style "margin-top" "8px"
+                    ]
+                    [ text "+" ]
                 ]
             ]
         , section []
