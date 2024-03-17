@@ -32,12 +32,12 @@ type alias Model =
 init : Model
 init =
     { people =
-        [ Person 1 ""
-        , Person 2 ""
+        [ { id = 1, name = "" }
+        , { id = 1, name = "" }
         ]
-    , nextPersonId = 2
+    , nextPersonId = 3
     , amounts =
-        [ Amount 1 1 "" 0 0
+        [ { id = 1, quantity = 1, name = "", unitPrice = 0, personId = 0 }
         ]
     , nextAmountId = 2
     }
@@ -48,10 +48,6 @@ type Msg
     | RemovePerson Int
     | AddAmount
     | RemoveAmount Int
-
-
-
--- | RemoveAmount Int
 
 
 update : Msg -> Model -> Model
@@ -66,7 +62,7 @@ update msg model =
                     model.nextPersonId + 1
 
                 adding =
-                    Person currentPersonId ""
+                    { id = currentPersonId, name = "" }
 
                 updatedPeople =
                     List.append model.people [ adding ]
@@ -89,7 +85,7 @@ update msg model =
                     model.nextAmountId + 1
 
                 adding =
-                    Amount currentAmountId 0 "" 0 0
+                    { id = currentAmountId, quantity = 1, name = "", unitPrice = 0, personId = 0 }
 
                 updatedAmounts =
                     List.append model.amounts [ adding ]

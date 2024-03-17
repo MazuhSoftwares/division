@@ -4464,25 +4464,17 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
-var $author$project$Main$Amount = F5(
-	function (id, quantity, name, unitPrice, personId) {
-		return {id: id, name: name, personId: personId, quantity: quantity, unitPrice: unitPrice};
-	});
-var $author$project$Main$Person = F2(
-	function (id, name) {
-		return {id: id, name: name};
-	});
 var $author$project$Main$init = {
 	amounts: _List_fromArray(
 		[
-			A5($author$project$Main$Amount, 1, 1, '', 0, 0)
+			{id: 1, name: '', personId: 0, quantity: 1, unitPrice: 0}
 		]),
 	nextAmountId: 2,
-	nextPersonId: 2,
+	nextPersonId: 3,
 	people: _List_fromArray(
 		[
-			A2($author$project$Main$Person, 1, ''),
-			A2($author$project$Main$Person, 2, '')
+			{id: 1, name: ''},
+			{id: 1, name: ''}
 		])
 };
 var $elm$core$Result$Err = function (a) {
@@ -5241,7 +5233,7 @@ var $author$project$Main$update = F2(
 			case 'AddPerson':
 				var nextPersonId = model.nextPersonId + 1;
 				var currentPersonId = model.nextPersonId;
-				var adding = A2($author$project$Main$Person, currentPersonId, '');
+				var adding = {id: currentPersonId, name: ''};
 				var updatedPeople = A2(
 					$elm$core$List$append,
 					model.people,
@@ -5264,7 +5256,7 @@ var $author$project$Main$update = F2(
 			case 'AddAmount':
 				var nextAmountId = model.nextAmountId + 1;
 				var currentAmountId = model.nextAmountId;
-				var adding = A5($author$project$Main$Amount, currentAmountId, 0, '', 0, 0);
+				var adding = {id: currentAmountId, name: '', personId: 0, quantity: 1, unitPrice: 0};
 				var updatedAmounts = A2(
 					$elm$core$List$append,
 					model.amounts,
