@@ -13,7 +13,8 @@ type alias Person =
 
 
 type alias Amount =
-    { quantity : Int
+    { id : Int
+    , quantity : Int
     , name : String
     , unitPrice : Float
     , personId : Int
@@ -24,6 +25,7 @@ type alias Model =
     { people : List Person
     , nextPersonId : Int
     , amounts : List Amount
+    , nextAmountId : Int
     }
 
 
@@ -35,14 +37,21 @@ init =
         ]
     , nextPersonId = 2
     , amounts =
-        [ Amount 1 "" 0 0
+        [ Amount 1 1 "" 0 0
         ]
+    , nextAmountId = 2
     }
 
 
 type Msg
     = AddPerson
     | RemovePerson Int
+    | AddAmount
+    | RemoveAmount Int
+
+
+
+-- | RemoveAmount Int
 
 
 update : Msg -> Model -> Model
@@ -71,13 +80,36 @@ update msg model =
             in
             { model | people = updatedPeople }
 
+        AddAmount ->
+            let
+                currentAmountId =
+                    model.nextAmountId
+
+                nextAmountId =
+                    model.nextAmountId + 1
+
+                adding =
+                    Amount currentAmountId 0 "" 0 0
+
+                updatedAmounts =
+                    List.append model.amounts [ adding ]
+            in
+            { model | amounts = updatedAmounts, nextAmountId = nextAmountId }
+
+        RemoveAmount id ->
+            let
+                updatedAmounts =
+                    List.filter (\amount -> amount.id /= id) model.amounts
+            in
+            { model | amounts = updatedAmounts }
+
 
 main =
     Browser.sandbox { init = init, update = update, view = view }
 
 
-viewPersonInput : Person -> Html Msg
-viewPersonInput person =
+viewPersonItem : Person -> Html Msg
+viewPersonItem person =
     let
         removeThisPerson =
             RemovePerson person.id
@@ -85,6 +117,21 @@ viewPersonInput person =
     div []
         [ input [ type_ "text", value person.name, placeholder ("Person " ++ String.fromInt person.id) ] []
         , button [ onClick removeThisPerson ] [ text "-" ]
+        ]
+
+
+viewAmountItem : Amount -> Html Msg
+viewAmountItem amount =
+    let
+        removeThisAmount =
+            RemoveAmount amount.id
+    in
+    div []
+        [ input [ type_ "number", value (String.fromFloat amount.unitPrice) ] []
+        , text "x "
+        , input [ type_ "text", value amount.name, placeholder ("Item " ++ String.fromInt amount.id) ] []
+        , input [ type_ "number", value (String.fromInt amount.quantity) ] []
+        , button [ onClick removeThisAmount ] [ text "-" ]
         ]
 
 
@@ -97,13 +144,16 @@ view model =
         , section []
             [ h2 [] [ text "People" ]
             , div []
-                [ div [] (List.map viewPersonInput model.people)
+                [ div [] (List.map viewPersonItem model.people)
                 , button [ onClick AddPerson ] [ text "+" ]
                 ]
             ]
         , section []
             [ h2 [] [ text "Amounts" ]
-            , p [] [ text "TODO." ]
+            , div []
+                [ div [] (List.map viewAmountItem model.amounts)
+                , button [ onClick AddAmount ] [ text "+" ]
+                ]
             ]
         , section []
             [ h2 [] [ text "Results" ]

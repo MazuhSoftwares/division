@@ -4464,9 +4464,9 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
-var $author$project$Main$Amount = F4(
-	function (quantity, name, unitPrice, personId) {
-		return {name: name, personId: personId, quantity: quantity, unitPrice: unitPrice};
+var $author$project$Main$Amount = F5(
+	function (id, quantity, name, unitPrice, personId) {
+		return {id: id, name: name, personId: personId, quantity: quantity, unitPrice: unitPrice};
 	});
 var $author$project$Main$Person = F2(
 	function (id, name) {
@@ -4475,8 +4475,9 @@ var $author$project$Main$Person = F2(
 var $author$project$Main$init = {
 	amounts: _List_fromArray(
 		[
-			A4($author$project$Main$Amount, 1, '', 0, 0)
+			A5($author$project$Main$Amount, 1, 1, '', 0, 0)
 		]),
+	nextAmountId: 2,
 	nextPersonId: 2,
 	people: _List_fromArray(
 		[
@@ -5236,31 +5237,56 @@ var $elm$core$List$filter = F2(
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'AddPerson') {
-			var nextPersonId = model.nextPersonId + 1;
-			var currentPersonId = model.nextPersonId;
-			var adding = A2($author$project$Main$Person, currentPersonId, '');
-			var updatedPeople = A2(
-				$elm$core$List$append,
-				model.people,
-				_List_fromArray(
-					[adding]));
-			return _Utils_update(
-				model,
-				{nextPersonId: nextPersonId, people: updatedPeople});
-		} else {
-			var id = msg.a;
-			var updatedPeople = A2(
-				$elm$core$List$filter,
-				function (person) {
-					return !_Utils_eq(person.id, id);
-				},
-				model.people);
-			return _Utils_update(
-				model,
-				{people: updatedPeople});
+		switch (msg.$) {
+			case 'AddPerson':
+				var nextPersonId = model.nextPersonId + 1;
+				var currentPersonId = model.nextPersonId;
+				var adding = A2($author$project$Main$Person, currentPersonId, '');
+				var updatedPeople = A2(
+					$elm$core$List$append,
+					model.people,
+					_List_fromArray(
+						[adding]));
+				return _Utils_update(
+					model,
+					{nextPersonId: nextPersonId, people: updatedPeople});
+			case 'RemovePerson':
+				var id = msg.a;
+				var updatedPeople = A2(
+					$elm$core$List$filter,
+					function (person) {
+						return !_Utils_eq(person.id, id);
+					},
+					model.people);
+				return _Utils_update(
+					model,
+					{people: updatedPeople});
+			case 'AddAmount':
+				var nextAmountId = model.nextAmountId + 1;
+				var currentAmountId = model.nextAmountId;
+				var adding = A5($author$project$Main$Amount, currentAmountId, 0, '', 0, 0);
+				var updatedAmounts = A2(
+					$elm$core$List$append,
+					model.amounts,
+					_List_fromArray(
+						[adding]));
+				return _Utils_update(
+					model,
+					{amounts: updatedAmounts, nextAmountId: nextAmountId});
+			default:
+				var id = msg.a;
+				var updatedAmounts = A2(
+					$elm$core$List$filter,
+					function (amount) {
+						return !_Utils_eq(amount.id, id);
+					},
+					model.amounts);
+				return _Utils_update(
+					model,
+					{amounts: updatedAmounts});
 		}
 	});
+var $author$project$Main$AddAmount = {$: 'AddAmount'};
 var $author$project$Main$AddPerson = {$: 'AddPerson'};
 var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$html$Html$button = _VirtualDom_node('button');
@@ -5308,14 +5334,66 @@ var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$html$Html$Attributes$target = $elm$html$Html$Attributes$stringProperty('target');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Main$RemovePerson = function (a) {
-	return {$: 'RemovePerson', a: a};
+var $author$project$Main$RemoveAmount = function (a) {
+	return {$: 'RemoveAmount', a: a};
 };
+var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
-var $author$project$Main$viewPersonInput = function (person) {
+var $author$project$Main$viewAmountItem = function (amount) {
+	var removeThisAmount = $author$project$Main$RemoveAmount(amount.id);
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$type_('number'),
+						$elm$html$Html$Attributes$value(
+						$elm$core$String$fromFloat(amount.unitPrice))
+					]),
+				_List_Nil),
+				$elm$html$Html$text('x '),
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$type_('text'),
+						$elm$html$Html$Attributes$value(amount.name),
+						$elm$html$Html$Attributes$placeholder(
+						'Item ' + $elm$core$String$fromInt(amount.id))
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$type_('number'),
+						$elm$html$Html$Attributes$value(
+						$elm$core$String$fromInt(amount.quantity))
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Events$onClick(removeThisAmount)
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('-')
+					]))
+			]));
+};
+var $author$project$Main$RemovePerson = function (a) {
+	return {$: 'RemovePerson', a: a};
+};
+var $author$project$Main$viewPersonItem = function (person) {
 	var removeThisPerson = $author$project$Main$RemovePerson(person.id);
 	return A2(
 		$elm$html$Html$div,
@@ -5396,7 +5474,7 @@ var $author$project$Main$view = function (model) {
 								A2(
 								$elm$html$Html$div,
 								_List_Nil,
-								A2($elm$core$List$map, $author$project$Main$viewPersonInput, model.people)),
+								A2($elm$core$List$map, $author$project$Main$viewPersonItem, model.people)),
 								A2(
 								$elm$html$Html$button,
 								_List_fromArray(
@@ -5422,11 +5500,24 @@ var $author$project$Main$view = function (model) {
 								$elm$html$Html$text('Amounts')
 							])),
 						A2(
-						$elm$html$Html$p,
+						$elm$html$Html$div,
 						_List_Nil,
 						_List_fromArray(
 							[
-								$elm$html$Html$text('TODO.')
+								A2(
+								$elm$html$Html$div,
+								_List_Nil,
+								A2($elm$core$List$map, $author$project$Main$viewAmountItem, model.amounts)),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick($author$project$Main$AddAmount)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('+')
+									]))
 							]))
 					])),
 				A2(
