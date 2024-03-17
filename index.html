@@ -5301,6 +5301,7 @@ var $elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$main_ = _VirtualDom_node('main');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
@@ -5326,12 +5327,12 @@ var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$html$Html$Attributes$target = $elm$html$Html$Attributes$stringProperty('target');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$html$Html$Attributes$title = $elm$html$Html$Attributes$stringProperty('title');
 var $author$project$Main$RemoveAmount = function (a) {
 	return {$: 'RemoveAmount', a: a};
 };
 var $elm$html$Html$Attributes$for = $elm$html$Html$Attributes$stringProperty('htmlFor');
 var $elm$core$String$fromFloat = _String_fromNumber;
-var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$label = _VirtualDom_node('label');
 var $elm$html$Html$Attributes$max = $elm$html$Html$Attributes$stringProperty('max');
@@ -5346,7 +5347,11 @@ var $author$project$Main$viewAmountItem = function (amount) {
 	var removeThisAmount = $author$project$Main$RemoveAmount(amount.id);
 	return A2(
 		$elm$html$Html$div,
-		_List_Nil,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+				A2($elm$html$Html$Attributes$style, 'margin-bottom', '8px')
+			]),
 		_List_fromArray(
 			[
 				A2(
@@ -5354,13 +5359,14 @@ var $author$project$Main$viewAmountItem = function (amount) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$id(
-						'quantity_input_' + $elm$core$String$fromInt(amount.id)),
+						'amount_quantity_input_' + $elm$core$String$fromInt(amount.id)),
 						$elm$html$Html$Attributes$type_('number'),
 						$elm$html$Html$Attributes$value(
 						$elm$core$String$fromInt(amount.quantity)),
 						$elm$html$Html$Attributes$step('1'),
 						$elm$html$Html$Attributes$min('0'),
-						$elm$html$Html$Attributes$max('99')
+						$elm$html$Html$Attributes$max('99'),
+						A2($elm$html$Html$Attributes$style, 'flex-shrink', '0')
 					]),
 				_List_Nil),
 				A2(
@@ -5368,7 +5374,7 @@ var $author$project$Main$viewAmountItem = function (amount) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$for(
-						'quantity_input_' + $elm$core$String$fromInt(amount.id)),
+						'amount_quantity_input_' + $elm$core$String$fromInt(amount.id)),
 						A2($elm$html$Html$Attributes$style, 'margin-right', '8px')
 					]),
 				_List_fromArray(
@@ -5379,11 +5385,14 @@ var $author$project$Main$viewAmountItem = function (amount) {
 				$elm$html$Html$input,
 				_List_fromArray(
 					[
+						$elm$html$Html$Attributes$id(
+						'amount_name_input_' + $elm$core$String$fromInt(amount.id)),
 						$elm$html$Html$Attributes$type_('text'),
 						$elm$html$Html$Attributes$value(amount.name),
 						$elm$html$Html$Attributes$placeholder(
 						'Item ' + $elm$core$String$fromInt(amount.id)),
-						A2($elm$html$Html$Attributes$style, 'margin-right', '8px')
+						A2($elm$html$Html$Attributes$style, 'margin-right', '8px'),
+						A2($elm$html$Html$Attributes$style, 'flex-grow', '1')
 					]),
 				_List_Nil),
 				A2(
@@ -5391,7 +5400,7 @@ var $author$project$Main$viewAmountItem = function (amount) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$for(
-						'unit_price_input_' + $elm$core$String$fromInt(amount.id))
+						'amount_unit_price_input_' + $elm$core$String$fromInt(amount.id))
 					]),
 				_List_fromArray(
 					[
@@ -5402,15 +5411,16 @@ var $author$project$Main$viewAmountItem = function (amount) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$id(
-						'unit_price_input_' + $elm$core$String$fromInt(amount.id)),
+						'amount_unit_price_input_' + $elm$core$String$fromInt(amount.id)),
 						$elm$html$Html$Attributes$type_('number'),
 						$elm$html$Html$Attributes$value(
 						$elm$core$String$fromFloat(amount.unitPrice)),
 						$elm$html$Html$Attributes$placeholder('0.00'),
 						$elm$html$Html$Attributes$step('0.01'),
 						$elm$html$Html$Attributes$min('0'),
-						$elm$html$Html$Attributes$max('999999.99'),
-						A2($elm$html$Html$Attributes$style, 'margin-right', '8px')
+						$elm$html$Html$Attributes$max('99999.99'),
+						A2($elm$html$Html$Attributes$style, 'margin-right', '8px'),
+						A2($elm$html$Html$Attributes$style, 'flex-shrink', '0')
 					]),
 				_List_Nil),
 				A2(
@@ -5418,7 +5428,8 @@ var $author$project$Main$viewAmountItem = function (amount) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Events$onClick(removeThisAmount),
-						A2($elm$html$Html$Attributes$style, 'margin-left', '4px')
+						$elm$html$Html$Attributes$title('Remove this item from amounts'),
+						A2($elm$html$Html$Attributes$style, 'flex-shrink', '0')
 					]),
 				_List_fromArray(
 					[
@@ -5433,18 +5444,25 @@ var $author$project$Main$viewPersonItem = function (person) {
 	var removeThisPerson = $author$project$Main$RemovePerson(person.id);
 	return A2(
 		$elm$html$Html$div,
-		_List_Nil,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+				A2($elm$html$Html$Attributes$style, 'margin-bottom', '8px')
+			]),
 		_List_fromArray(
 			[
 				A2(
 				$elm$html$Html$input,
 				_List_fromArray(
 					[
+						$elm$html$Html$Attributes$id(
+						'person_name_input_' + $elm$core$String$fromInt(person.id)),
 						$elm$html$Html$Attributes$type_('text'),
 						$elm$html$Html$Attributes$value(person.name),
 						$elm$html$Html$Attributes$placeholder(
 						'Person ' + $elm$core$String$fromInt(person.id)),
-						A2($elm$html$Html$Attributes$style, 'margin-right', '8px')
+						A2($elm$html$Html$Attributes$style, 'margin-right', '8px'),
+						A2($elm$html$Html$Attributes$style, 'flex-grow', '1')
 					]),
 				_List_Nil),
 				A2(
@@ -5452,7 +5470,8 @@ var $author$project$Main$viewPersonItem = function (person) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Events$onClick(removeThisPerson),
-						A2($elm$html$Html$Attributes$style, 'margin-left', '4px')
+						$elm$html$Html$Attributes$title('Remove this person'),
+						A2($elm$html$Html$Attributes$style, 'flex-shrink', '0')
 					]),
 				_List_fromArray(
 					[
@@ -5465,9 +5484,10 @@ var $author$project$Main$view = function (model) {
 		$elm$html$Html$main_,
 		_List_fromArray(
 			[
-				A2($elm$html$Html$Attributes$style, 'padding', '8px'),
-				A2($elm$html$Html$Attributes$style, 'margin', 'auto'),
 				A2($elm$html$Html$Attributes$style, 'box-sizing', 'border-box'),
+				A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+				A2($elm$html$Html$Attributes$style, 'padding-right', '16px'),
+				A2($elm$html$Html$Attributes$style, 'margin', 'auto'),
 				A2($elm$html$Html$Attributes$style, 'width', '100vw'),
 				A2($elm$html$Html$Attributes$style, 'max-width', '500px'),
 				A2($elm$html$Html$Attributes$style, 'overflow', 'hidden')
@@ -5476,7 +5496,10 @@ var $author$project$Main$view = function (model) {
 			[
 				A2(
 				$elm$html$Html$header,
-				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('header')
+					]),
 				_List_fromArray(
 					[
 						A2(
@@ -5496,7 +5519,10 @@ var $author$project$Main$view = function (model) {
 					])),
 				A2(
 				$elm$html$Html$section,
-				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('people')
+					]),
 				_List_fromArray(
 					[
 						A2(
@@ -5505,6 +5531,13 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text('People')
+							])),
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Add how many people is participating. Names are all optional.')
 							])),
 						A2(
 						$elm$html$Html$div,
@@ -5520,17 +5553,32 @@ var $author$project$Main$view = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Main$AddPerson),
-										A2($elm$html$Html$Attributes$style, 'margin-top', '8px')
+										$elm$html$Html$Attributes$title('Add a new person'),
+										A2($elm$html$Html$Attributes$style, 'margin-top', '8px'),
+										A2($elm$html$Html$Attributes$style, 'margin-right', '8px')
 									]),
 								_List_fromArray(
 									[
 										$elm$html$Html$text('+')
+									])),
+								A2(
+								$elm$html$Html$a,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$href('#amounts')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Next: to amounts')
 									]))
 							]))
 					])),
 				A2(
 				$elm$html$Html$section,
-				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('amounts')
+					]),
 				_List_fromArray(
 					[
 						A2(
@@ -5539,6 +5587,13 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text('Amounts')
+							])),
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('How much each item costs for these people. Naming is also optional.')
 							])),
 						A2(
 						$elm$html$Html$div,
@@ -5554,17 +5609,32 @@ var $author$project$Main$view = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Main$AddAmount),
-										A2($elm$html$Html$Attributes$style, 'margin-top', '8px')
+										$elm$html$Html$Attributes$title('Add a new item on amounts'),
+										A2($elm$html$Html$Attributes$style, 'margin-top', '8px'),
+										A2($elm$html$Html$Attributes$style, 'margin-right', '8px')
 									]),
 								_List_fromArray(
 									[
 										$elm$html$Html$text('+')
+									])),
+								A2(
+								$elm$html$Html$a,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$href('#results')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Next: to results')
 									]))
 							]))
 					])),
 				A2(
 				$elm$html$Html$section,
-				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('results')
+					]),
 				_List_fromArray(
 					[
 						A2(
@@ -5584,7 +5654,12 @@ var $author$project$Main$view = function (model) {
 					])),
 				A2(
 				$elm$html$Html$footer,
-				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('footer'),
+						A2($elm$html$Html$Attributes$style, 'margin-top', '50px'),
+						A2($elm$html$Html$Attributes$style, 'margin-bottom', '30px')
+					]),
 				_List_fromArray(
 					[
 						$elm$html$Html$text('It\'s '),

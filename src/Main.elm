@@ -2,8 +2,13 @@ module Main exposing (Msg(..), main, update, view)
 
 import Browser
 import Html exposing (Html, a, button, div, footer, h1, h2, header, input, label, main_, p, section, text)
-import Html.Attributes exposing (for, href, id, placeholder, step, style, target, type_, value)
+import Html.Attributes exposing (for, href, id, placeholder, step, style, target, title, type_, value)
 import Html.Events exposing (onClick)
+
+
+main : Program () Model Msg
+main =
+    Browser.sandbox { init = init, update = update, view = view }
 
 
 type alias Person =
@@ -100,9 +105,78 @@ update msg model =
             { model | amounts = updatedAmounts }
 
 
-main : Program () Model Msg
-main =
-    Browser.sandbox { init = init, update = update, view = view }
+view : Model -> Html Msg
+view model =
+    main_
+        [ style "box-sizing" "border-box"
+        , style "padding" "8px"
+        , style "padding-right" "16px"
+        , style "margin" "auto"
+        , style "width" "100vw"
+        , style "max-width" "500px"
+        , style "overflow" "hidden"
+        ]
+        [ header [ id "header" ]
+            [ h1 []
+                [ text "Division" ]
+            , p []
+                [ text "While sharing a payment, how much each people will pay?" ]
+            ]
+        , section [ id "people" ]
+            [ h2 []
+                [ text "People" ]
+            , p []
+                [ text "Add how many people is participating. Names are all optional." ]
+            , div []
+                [ div []
+                    (List.map viewPersonItem model.people)
+                , button
+                    [ onClick AddPerson
+                    , title "Add a new person"
+                    , style "margin-top" "8px"
+                    , style "margin-right" "8px"
+                    ]
+                    [ text "+" ]
+                , a [ href "#amounts" ]
+                    [ text "Next: to amounts" ]
+                ]
+            ]
+        , section [ id "amounts" ]
+            [ h2 []
+                [ text "Amounts" ]
+            , p []
+                [ text "How much each item costs for these people. Naming is also optional." ]
+            , div []
+                [ div [] (List.map viewAmountItem model.amounts)
+                , button
+                    [ onClick AddAmount
+                    , title "Add a new item on amounts"
+                    , style "margin-top" "8px"
+                    , style "margin-right" "8px"
+                    ]
+                    [ text "+" ]
+                , a [ href "#results" ]
+                    [ text "Next: to results" ]
+                ]
+            ]
+        , section [ id "results" ]
+            [ h2 [] [ text "Results" ]
+            , p [] [ text "TODO." ]
+            ]
+        , footer
+            [ id "footer"
+            , style "margin-top" "50px"
+            , style "margin-bottom" "30px"
+            ]
+            [ text "It's "
+            , a
+                [ href "https://github.com/MazuhSoftwares/division"
+                , target "_blank"
+                ]
+                [ text "free source" ]
+            , text "!"
+            ]
+        ]
 
 
 viewPersonItem : Person -> Html Msg
@@ -111,17 +185,23 @@ viewPersonItem person =
         removeThisPerson =
             RemovePerson person.id
     in
-    div []
+    div
+        [ style "display" "flex"
+        , style "margin-bottom" "8px"
+        ]
         [ input
-            [ type_ "text"
+            [ id ("person_name_input_" ++ String.fromInt person.id)
+            , type_ "text"
             , value person.name
             , placeholder ("Person " ++ String.fromInt person.id)
             , style "margin-right" "8px"
+            , style "flex-grow" "1"
             ]
             []
         , button
             [ onClick removeThisPerson
-            , style "margin-left" "4px"
+            , title "Remove this person"
+            , style "flex-shrink" "0"
             ]
             [ text "−" ]
         ]
@@ -133,90 +213,52 @@ viewAmountItem amount =
         removeThisAmount =
             RemoveAmount amount.id
     in
-    div []
+    div
+        [ style "display" "flex"
+        , style "margin-bottom" "8px"
+        ]
         [ input
-            [ id ("quantity_input_" ++ String.fromInt amount.id)
+            [ id ("amount_quantity_input_" ++ String.fromInt amount.id)
             , type_ "number"
             , value (String.fromInt amount.quantity)
             , step "1"
             , Html.Attributes.min "0"
             , Html.Attributes.max "99"
+            , style "flex-shrink" "0"
             ]
             []
         , label
-            [ for ("quantity_input_" ++ String.fromInt amount.id), style "margin-right" "8px" ]
+            [ for ("amount_quantity_input_" ++ String.fromInt amount.id)
+            , style "margin-right" "8px"
+            ]
             [ text "x" ]
         , input
-            [ type_ "text"
+            [ id ("amount_name_input_" ++ String.fromInt amount.id)
+            , type_ "text"
             , value amount.name
             , placeholder ("Item " ++ String.fromInt amount.id)
             , style "margin-right" "8px"
+            , style "flex-grow" "1"
             ]
             []
-        , label [ for ("unit_price_input_" ++ String.fromInt amount.id) ]
+        , label [ for ("amount_unit_price_input_" ++ String.fromInt amount.id) ]
             [ text "$" ]
         , input
-            [ id ("unit_price_input_" ++ String.fromInt amount.id)
+            [ id ("amount_unit_price_input_" ++ String.fromInt amount.id)
             , type_ "number"
             , value (String.fromFloat amount.unitPrice)
             , placeholder "0.00"
             , step "0.01"
             , Html.Attributes.min "0"
-            , Html.Attributes.max "999999.99"
+            , Html.Attributes.max "99999.99"
             , style "margin-right" "8px"
+            , style "flex-shrink" "0"
             ]
             []
         , button
             [ onClick removeThisAmount
-            , style "margin-left" "4px"
+            , title "Remove this item from amounts"
+            , style "flex-shrink" "0"
             ]
             [ text "−" ]
-        ]
-
-
-view : Model -> Html Msg
-view model =
-    main_
-        [ style "padding" "8px"
-        , style "margin" "auto"
-        , style "box-sizing" "border-box"
-        , style "width" "100vw"
-        , style "max-width" "500px"
-        , style "overflow" "hidden"
-        ]
-        [ header []
-            [ h1 [] [ text "Division" ]
-            , p [] [ text "While sharing a payment, how much each people will pay?" ]
-            ]
-        , section []
-            [ h2 [] [ text "People" ]
-            , div []
-                [ div [] (List.map viewPersonItem model.people)
-                , button
-                    [ onClick AddPerson
-                    , style "margin-top" "8px"
-                    ]
-                    [ text "+" ]
-                ]
-            ]
-        , section []
-            [ h2 [] [ text "Amounts" ]
-            , div []
-                [ div [] (List.map viewAmountItem model.amounts)
-                , button
-                    [ onClick AddAmount
-                    , style "margin-top" "8px"
-                    ]
-                    [ text "+" ]
-                ]
-            ]
-        , section []
-            [ h2 [] [ text "Results" ]
-            , p [] [ text "TODO." ]
-            ]
-        , footer []
-            [ text "It's "
-            , a [ href "https://github.com/MazuhSoftwares/division", target "_blank" ] [ text "free source" ]
-            , text "!"
-            ]
         ]
