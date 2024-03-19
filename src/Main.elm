@@ -1,9 +1,9 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Html exposing (Html, a, button, div, footer, h1, h2, header, input, label, main_, p, section, text)
+import Html exposing (Html, a, button, div, footer, h1, h2, header, input, label, li, main_, p, section, text, ul)
 import Html.Attributes exposing (for, href, id, placeholder, step, style, target, title, type_, value)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 
 
 main : Program () Model Msg
@@ -43,8 +43,10 @@ init =
     , nextPersonId = 3
     , amounts =
         [ { id = 1, quantity = 1, name = "", unitPrice = 0, personId = 0 }
+        , { id = 2, quantity = 1, name = "", unitPrice = 0, personId = 0 }
+        , { id = 3, quantity = 1, name = "", unitPrice = 0, personId = 0 }
         ]
-    , nextAmountId = 2
+    , nextAmountId = 4
     }
 
 
@@ -52,6 +54,7 @@ type Msg
     = AddPerson
     | RemovePerson Int
     | AddAmount
+    | UpdateAmount Amount
     | RemoveAmount Int
 
 
@@ -97,10 +100,25 @@ update msg model =
             in
             { model | amounts = updatedAmounts, nextAmountId = nextAmountId }
 
-        RemoveAmount id ->
+        UpdateAmount updatingAmount ->
             let
                 updatedAmounts =
-                    List.filter (\amount -> amount.id /= id) model.amounts
+                    model.amounts
+                        |> List.map
+                            (\existing ->
+                                if existing.id == updatingAmount.id then
+                                    updatingAmount
+
+                                else
+                                    existing
+                            )
+            in
+            { model | amounts = updatedAmounts }
+
+        RemoveAmount removingId ->
+            let
+                updatedAmounts =
+                    List.filter (\existing -> existing.id /= removingId) model.amounts
             in
             { model | amounts = updatedAmounts }
 
@@ -133,12 +151,22 @@ view model =
                 , button
                     [ onClick AddPerson
                     , title "Add a new person"
-                    , style "margin-top" "8px"
-                    , style "margin-right" "8px"
+                    , style "display" "block"
+                    , style "padding-left" "30px"
+                    , style "padding-right" "30px"
+                    , style "margin-left" "auto"
                     ]
                     [ text "+" ]
-                , a [ href "#amounts" ]
-                    [ text "Next: to amounts" ]
+                , p
+                    [ style "text-align" "right"
+                    ]
+                    [ text "Go "
+                    , a [ href "#amounts" ]
+                        [ text "to amounts (next)" ]
+                    , text " or "
+                    , a [ href "#header" ]
+                        [ text "to the top" ]
+                    ]
                 ]
             ]
         , section [ id "amounts" ]
@@ -151,17 +179,27 @@ view model =
                 , button
                     [ onClick AddAmount
                     , title "Add a new item on amounts"
-                    , style "margin-top" "8px"
-                    , style "margin-right" "8px"
+                    , style "display" "block"
+                    , style "padding-left" "30px"
+                    , style "padding-right" "30px"
+                    , style "margin-left" "auto"
                     ]
                     [ text "+" ]
-                , a [ href "#results" ]
-                    [ text "Next: to results" ]
+                , p
+                    [ style "text-align" "right"
+                    ]
+                    [ text "Go "
+                    , a [ href "#amounts" ]
+                        [ text "see results (next)" ]
+                    , text " or "
+                    , a [ href "#header" ]
+                        [ text "to the top" ]
+                    ]
                 ]
             ]
         , section [ id "results" ]
             [ h2 [] [ text "Results" ]
-            , p [] [ text "TODO." ]
+            , viewResultsList model
             ]
         , footer
             [ id "footer"
@@ -212,6 +250,21 @@ viewAmountItem amount =
     let
         removeThisAmount =
             RemoveAmount amount.id
+
+        handleQuantityInput quantityStr =
+            quantityStr
+                |> String.toFloat
+                |> Maybe.withDefault 0
+                |> (\quantity -> UpdateAmount { amount | quantity = floor quantity })
+
+        handleNameInput name =
+            UpdateAmount { amount | name = name }
+
+        handleUnitPriceInput unitPriceStr =
+            unitPriceStr
+                |> String.toFloat
+                |> Maybe.withDefault 0
+                |> (\unitPrice -> UpdateAmount { amount | unitPrice = unitPrice })
     in
     div
         [ style "display" "flex"
@@ -221,6 +274,7 @@ viewAmountItem amount =
             [ id ("amount_quantity_input_" ++ String.fromInt amount.id)
             , type_ "number"
             , value (String.fromInt amount.quantity)
+            , onInput handleQuantityInput
             , step "1"
             , Html.Attributes.min "0"
             , Html.Attributes.max "99"
@@ -236,6 +290,7 @@ viewAmountItem amount =
             [ id ("amount_name_input_" ++ String.fromInt amount.id)
             , type_ "text"
             , value amount.name
+            , onInput handleNameInput
             , placeholder ("Item " ++ String.fromInt amount.id)
             , style "margin-right" "8px"
             , style "flex-grow" "1"
@@ -247,6 +302,7 @@ viewAmountItem amount =
             [ id ("amount_unit_price_input_" ++ String.fromInt amount.id)
             , type_ "number"
             , value (String.fromFloat amount.unitPrice)
+            , onInput handleUnitPriceInput
             , placeholder "0.00"
             , step "0.01"
             , Html.Attributes.min "0"
@@ -262,3 +318,52 @@ viewAmountItem amount =
             ]
             [ text "−" ]
         ]
+
+
+viewResultsList : Model -> Html Msg
+viewResultsList model =
+    let
+        total =
+            model.amounts
+                |> List.map
+                    (\amount ->
+                        { quantity = amount.quantity
+                        , priceInCents = priceToCents amount.unitPrice
+                        }
+                    )
+                |> List.map
+                    (\amount -> amount.quantity * amount.priceInCents)
+                |> List.sum
+                |> centsToPriceString
+    in
+    ul
+        []
+        [ li [] [ text ("Total: " ++ total) ]
+        ]
+
+
+priceToCents : Float -> Int
+priceToCents amount =
+    floor (amount * 100)
+
+
+centsToPriceString : Int -> String
+centsToPriceString cents =
+    let
+        whole =
+            cents // 100
+
+        whileStr =
+            String.fromInt whole
+
+        fractional =
+            cents - (whole * 100)
+
+        fractionalStr =
+            if fractional < 10 then
+                "0" ++ String.fromInt fractional
+
+            else
+                String.fromInt fractional
+    in
+    "$ " ++ whileStr ++ "." ++ fractionalStr
