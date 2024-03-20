@@ -1,8 +1,8 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Html exposing (Html, a, button, div, footer, h1, h2, header, input, label, li, main_, p, section, text, ul)
-import Html.Attributes exposing (for, href, id, placeholder, step, style, target, title, type_, value)
+import Html exposing (Html, a, button, div, footer, h1, h2, header, input, label, li, main_, option, p, section, select, text, ul)
+import Html.Attributes exposing (for, href, id, maxlength, placeholder, step, style, target, title, type_, value)
 import Html.Events exposing (onClick, onInput)
 
 
@@ -42,9 +42,9 @@ init =
         ]
     , nextPersonId = 3
     , amounts =
-        [ { id = 1, quantity = 1, name = "", unitPrice = 0, personId = 0 }
-        , { id = 2, quantity = 1, name = "", unitPrice = 0, personId = 0 }
-        , { id = 3, quantity = 1, name = "", unitPrice = 0, personId = 0 }
+        [ { id = 1, quantity = 1, name = "", unitPrice = 0.0, personId = 0 }
+        , { id = 2, quantity = 1, name = "", unitPrice = 0.0, personId = 0 }
+        , { id = 3, quantity = 1, name = "", unitPrice = 0.0, personId = 0 }
         ]
     , nextAmountId = 4
     }
@@ -52,6 +52,7 @@ init =
 
 type Msg
     = AddPerson
+    | UpdatePerson Person
     | RemovePerson Int
     | AddAmount
     | UpdateAmount Amount
@@ -77,12 +78,38 @@ update msg model =
             in
             { model | people = updatedPeople, nextPersonId = nextPersonId }
 
-        RemovePerson id ->
+        UpdatePerson updatingPerson ->
             let
                 updatedPeople =
-                    List.filter (\person -> person.id /= id) model.people
+                    model.people
+                        |> List.map
+                            (\existing ->
+                                if existing.id == updatingPerson.id then
+                                    updatingPerson
+
+                                else
+                                    existing
+                            )
             in
             { model | people = updatedPeople }
+
+        RemovePerson removingPersonId ->
+            let
+                updatedPeople =
+                    List.filter (\person -> person.id /= removingPersonId) model.people
+
+                updatedAmounts =
+                    model.amounts
+                        |> List.map
+                            (\amount ->
+                                if amount.personId == removingPersonId then
+                                    { amount | personId = 0 }
+
+                                else
+                                    amount
+                            )
+            in
+            { model | people = updatedPeople, amounts = updatedAmounts }
 
         AddAmount ->
             let
@@ -175,7 +202,7 @@ view model =
             , p []
                 [ text "How much each item costs for these people. Naming is also optional." ]
             , div []
-                [ div [] (List.map viewAmountItem model.amounts)
+                [ div [] (List.map (\amount -> viewAmountItem model amount) model.amounts)
                 , button
                     [ onClick AddAmount
                     , title "Add a new item on amounts"
@@ -222,6 +249,9 @@ viewPersonItem person =
     let
         removeThisPerson =
             RemovePerson person.id
+
+        handleNameInput name =
+            UpdatePerson { person | name = name }
     in
     div
         [ style "display" "flex"
@@ -231,7 +261,9 @@ viewPersonItem person =
             [ id ("person_name_input_" ++ String.fromInt person.id)
             , type_ "text"
             , value person.name
-            , placeholder ("Person " ++ String.fromInt person.id)
+            , onInput handleNameInput
+            , placeholder (personNamePlaceholder person)
+            , maxlength 16
             , style "margin-right" "8px"
             , style "flex-grow" "1"
             ]
@@ -245,8 +277,8 @@ viewPersonItem person =
         ]
 
 
-viewAmountItem : Amount -> Html Msg
-viewAmountItem amount =
+viewAmountItem : Model -> Amount -> Html Msg
+viewAmountItem model amount =
     let
         removeThisAmount =
             RemoveAmount amount.id
@@ -265,6 +297,28 @@ viewAmountItem amount =
                 |> String.toFloat
                 |> Maybe.withDefault 0
                 |> (\unitPrice -> UpdateAmount { amount | unitPrice = unitPrice })
+
+        emptyPersonOption =
+            { value = "0", text = "Nobody" }
+
+        nonEmptyPeopleOptions =
+            model.people
+                |> List.map
+                    (\person ->
+                        { value = String.fromInt person.id, text = personNameWithDefault person }
+                    )
+
+        peopleOptions =
+            emptyPersonOption :: nonEmptyPeopleOptions
+
+        selectedPersonOption =
+            String.fromInt amount.personId
+
+        handlePersonInput personIdStr =
+            personIdStr
+                |> String.toInt
+                |> Maybe.withDefault 0
+                |> (\personId -> UpdateAmount { amount | personId = personId })
     in
     div
         [ style "display" "flex"
@@ -292,6 +346,7 @@ viewAmountItem amount =
             , value amount.name
             , onInput handleNameInput
             , placeholder ("Item " ++ String.fromInt amount.id)
+            , maxlength 16
             , style "margin-right" "8px"
             , style "flex-grow" "1"
             ]
@@ -311,6 +366,28 @@ viewAmountItem amount =
             , style "flex-shrink" "0"
             ]
             []
+        , select
+            [ id ("amount_person_input_" ++ String.fromInt amount.id)
+            , value selectedPersonOption
+            , onInput handlePersonInput
+            , style "width" "90px"
+            , style "margin-right" "8px"
+            , style "font-style"
+                (if amount.personId == 0 then
+                    "italic"
+
+                 else
+                    "normal"
+                )
+            ]
+            (List.map
+                (\person ->
+                    option
+                        [ value person.value ]
+                        [ text person.text ]
+                )
+                peopleOptions
+            )
         , button
             [ onClick removeThisAmount
             , title "Remove this item from amounts"
@@ -367,3 +444,17 @@ centsToPriceString cents =
                 String.fromInt fractional
     in
     "$ " ++ whileStr ++ "." ++ fractionalStr
+
+
+personNameWithDefault : Person -> String
+personNameWithDefault person =
+    if String.isEmpty person.name then
+        personNamePlaceholder person
+
+    else
+        person.name
+
+
+personNamePlaceholder : Person -> String
+personNamePlaceholder person =
+    "Person " ++ String.fromInt person.id
