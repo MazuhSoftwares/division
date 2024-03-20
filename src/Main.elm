@@ -1,7 +1,7 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Html exposing (Html, a, button, div, footer, h1, h2, header, input, label, li, main_, option, p, section, select, text, ul)
+import Html exposing (Html, a, button, div, em, footer, h1, h2, header, input, label, li, main_, option, p, section, select, span, text, ul)
 import Html.Attributes exposing (for, href, id, maxlength, placeholder, step, style, target, title, type_, value)
 import Html.Events exposing (onClick, onInput)
 
@@ -400,7 +400,7 @@ viewAmountItem model amount =
 viewResultsList : Model -> Html Msg
 viewResultsList model =
     let
-        total =
+        totalWithCurrency =
             model.amounts
                 |> List.map
                     (\amount ->
@@ -411,11 +411,60 @@ viewResultsList model =
                 |> List.map
                     (\amount -> amount.quantity * amount.priceInCents)
                 |> List.sum
-                |> centsToPriceString
+                |> centsToPriceWithCurrency
+
+        personTotalInCents personId =
+            model.amounts
+                |> List.filter (\amount -> amount.personId == personId)
+                |> List.map
+                    (\amount ->
+                        { quantity = amount.quantity
+                        , priceInCents = priceToCents amount.unitPrice
+                        }
+                    )
+                |> List.map
+                    (\amount -> amount.quantity * amount.priceInCents)
+                |> List.sum
+
+        peopleResults =
+            ({ id = 0, name = "" } :: model.people)
+                |> List.map
+                    (\person ->
+                        { id = person.id
+                        , nameWithDefault = personNameWithDefault person
+                        , totalInCents = personTotalInCents person.id
+                        }
+                    )
+                |> List.filter (\it -> it.id /= 0 || (it.id == 0 && it.totalInCents > 0))
+                |> List.map
+                    (\it ->
+                        { id = it.id
+                        , nameWithDefault = it.nameWithDefault
+                        , totalWithCurrency = centsToPriceWithCurrency it.totalInCents
+                        }
+                    )
     in
     ul
         []
-        [ li [] [ text ("Total: " ++ total) ]
+        [ li []
+            [ text ("Total: " ++ totalWithCurrency)
+            , ul []
+                (List.map
+                    (\result ->
+                        if result.id == 0 then
+                            li []
+                                [ em [] [ text "Nobody: " ]
+                                , span [] [ text result.totalWithCurrency ]
+                                ]
+
+                        else
+                            li []
+                                [ text (result.nameWithDefault ++ ": " ++ result.totalWithCurrency)
+                                ]
+                    )
+                    peopleResults
+                )
+            ]
         ]
 
 
@@ -443,7 +492,12 @@ centsToPriceString cents =
             else
                 String.fromInt fractional
     in
-    "$ " ++ whileStr ++ "." ++ fractionalStr
+    whileStr ++ "." ++ fractionalStr
+
+
+centsToPriceWithCurrency : Int -> String
+centsToPriceWithCurrency cents =
+    "$ " ++ centsToPriceString cents
 
 
 personNameWithDefault : Person -> String
