@@ -240,13 +240,25 @@ view model =
             , style "margin-top" "50px"
             , style "margin-bottom" "30px"
             ]
-            [ text "It's "
-            , a
-                [ href "https://github.com/MazuhSoftwares/division"
-                , target "_blank"
+            [ p
+                []
+                [ text "It's "
+                , a
+                    [ href "https://github.com/MazuhSoftwares/division"
+                    , target "_blank"
+                    ]
+                    [ text "free source" ]
+                , text "!"
                 ]
-                [ text "free source" ]
-            , text "!"
+            , p []
+                [ text "And if you're looking for a real app to share payments in Brazil, check out "
+                , a
+                    [ href "https://www.cumbuca.com"
+                    , target "_blank"
+                    ]
+                    [ text "Cumbuca" ]
+                , text " for more."
+                ]
             ]
         ]
 
