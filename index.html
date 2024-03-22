@@ -5492,7 +5492,7 @@ var $author$project$Main$viewAmountItem = F2(
 					amount,
 					{name: name}));
 		};
-		var emptyPersonOption = {text: 'Nobody', value: '0'};
+		var emptyPersonOption = {text: 'Everyone', value: '0'};
 		var peopleOptions = A2($elm$core$List$cons, emptyPersonOption, nonEmptyPeopleOptions);
 		return A2(
 			$elm$html$Html$div,
@@ -5689,6 +5689,7 @@ var $author$project$Main$priceToCents = function (amount) {
 	return $elm$core$Basics$floor(amount * 100);
 };
 var $elm$html$Html$span = _VirtualDom_node('span');
+var $elm$html$Html$strong = _VirtualDom_node('strong');
 var $elm$core$List$sum = function (numbers) {
 	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
 };
@@ -5768,8 +5769,9 @@ var $author$project$Main$viewResultsList = function (model) {
 				return calcs.subtotalInCents;
 			},
 			peopleCalcsForItems));
-	var totalTip = subtotalInCents * 0.1;
-	var eachTip = $elm$core$Basics$floor(totalTip / peopleQtt);
+	var totalTipInCents = subtotalInCents * 0.1;
+	var totalInCents = subtotalInCents + $elm$core$Basics$floor(totalTipInCents);
+	var eachTipInCents = $elm$core$Basics$floor(totalTipInCents / peopleQtt);
 	return A2(
 		$elm$html$Html$ul,
 		_List_Nil,
@@ -5777,10 +5779,20 @@ var $author$project$Main$viewResultsList = function (model) {
 			[
 				A2(
 				$elm$html$Html$li,
-				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Total: ' + totalWithCurrency),
+						A2($elm$html$Html$Attributes$style, 'margin-bottom', '8px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Subtotal: '),
+						A2(
+						$elm$html$Html$strong,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text(totalWithCurrency)
+							])),
 						A2(
 						$elm$html$Html$ul,
 						_List_Nil,
@@ -5797,7 +5809,7 @@ var $author$project$Main$viewResultsList = function (model) {
 											_List_Nil,
 											_List_fromArray(
 												[
-													$elm$html$Html$text('Nobody: ')
+													$elm$html$Html$text('Everyone: ')
 												])),
 											A2(
 											$elm$html$Html$span,
@@ -5818,11 +5830,54 @@ var $author$project$Main$viewResultsList = function (model) {
 					])),
 				A2(
 				$elm$html$Html$li,
-				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text(
-						'Each tip (10% divided by ' + ($elm$core$String$fromInt(peopleQtt) + ('): ' + $author$project$Main$centsToPriceWithCurrency(eachTip))))
+						A2($elm$html$Html$Attributes$style, 'margin-bottom', '8px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Tip (10% of subtotal): '),
+						A2(
+						$elm$html$Html$strong,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								$author$project$Main$centsToPriceWithCurrency(
+									$elm$core$Basics$floor(totalTipInCents)))
+							])),
+						A2(
+						$elm$html$Html$ul,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$li,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										'For each of ' + ($elm$core$String$fromInt(peopleQtt) + (' people: ' + $author$project$Main$centsToPriceWithCurrency(eachTipInCents))))
+									]))
+							]))
+					])),
+				A2(
+				$elm$html$Html$li,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'margin-bottom', '8px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Total bill: '),
+						A2(
+						$elm$html$Html$strong,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								$author$project$Main$centsToPriceWithCurrency(totalInCents))
+							]))
 					]))
 			]));
 };
@@ -6041,6 +6096,13 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text('Results')
+							])),
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Here\'s how to pay. Percentages may have been rounded.')
 							])),
 						$author$project$Main$viewResultsList(model)
 					])),

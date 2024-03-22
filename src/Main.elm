@@ -1,14 +1,13 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Html exposing (Html, a, button, div, em, footer, h1, h2, header, input, label, li, main_, option, p, section, select, span, text, ul)
+import Html exposing (Html, a, button, div, em, footer, h1, h2, header, input, label, li, main_, option, p, section, select, span, strong, text, ul)
 import Html.Attributes exposing (for, href, id, maxlength, placeholder, step, style, target, title, type_, value)
 import Html.Events exposing (onClick, onInput)
 
 
 
 -- TODO: each person participation in %
--- TODO: all option, everyone sharing a single item
 
 
 main : Program () Model Msg
@@ -231,6 +230,9 @@ view model =
             ]
         , section [ id "results" ]
             [ h2 [] [ text "Results" ]
+            , p []
+                [ text "Here's how to pay. Percentages may have been rounded."
+                ]
             , viewResultsList model
             ]
         , footer
@@ -304,7 +306,7 @@ viewAmountItem model amount =
                 |> (\unitPrice -> UpdateAmount { amount | unitPrice = unitPrice })
 
         emptyPersonOption =
-            { value = "0", text = "Nobody" }
+            { value = "0", text = "Everyone" }
 
         nonEmptyPeopleOptions =
             model.people
@@ -458,22 +460,26 @@ viewResultsList model =
                 |> List.map (\calcs -> calcs.subtotalInCents)
                 |> List.sum
 
-        totalTip =
+        totalTipInCents =
             toFloat subtotalInCents * 0.1
 
-        eachTip =
-            floor (totalTip / (peopleQtt |> toFloat))
+        eachTipInCents =
+            floor (totalTipInCents / (peopleQtt |> toFloat))
+
+        totalInCents =
+            subtotalInCents + floor totalTipInCents
     in
     ul
         []
-        [ li []
-            [ text ("Total: " ++ totalWithCurrency)
+        [ li [ style "margin-bottom" "8px" ]
+            [ text "Subtotal: "
+            , strong [] [ text totalWithCurrency ]
             , ul []
                 (List.map
                     (\result ->
                         if result.id == 0 then
                             li []
-                                [ em [] [ text "Nobody: " ]
+                                [ em [] [ text "Everyone: " ]
                                 , span [] [ text result.subtotalWithCurrency ]
                                 ]
 
@@ -485,8 +491,18 @@ viewResultsList model =
                     peopleCalcsForItems
                 )
             ]
-        , li []
-            [ text ("Each tip (10% divided by " ++ String.fromInt peopleQtt ++ "): " ++ centsToPriceWithCurrency eachTip)
+        , li [ style "margin-bottom" "8px" ]
+            [ text "Tip (10% of subtotal): "
+            , strong [] [ text (centsToPriceWithCurrency (floor totalTipInCents)) ]
+            , ul []
+                [ li []
+                    [ text ("For each of " ++ String.fromInt peopleQtt ++ " people: " ++ centsToPriceWithCurrency eachTipInCents)
+                    ]
+                ]
+            ]
+        , li [ style "margin-bottom" "8px" ]
+            [ text "Total bill: "
+            , strong [] [ text (centsToPriceWithCurrency totalInCents) ]
             ]
         ]
 
