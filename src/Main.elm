@@ -6,6 +6,11 @@ import Html.Attributes exposing (for, href, id, maxlength, placeholder, step, st
 import Html.Events exposing (onClick, onInput)
 
 
+
+-- TODO: each person participation in %
+-- TODO: all option, everyone sharing a single item
+
+
 main : Program () Model Msg
 main =
     Browser.sandbox { init = init, update = update, view = view }
@@ -400,6 +405,9 @@ viewAmountItem model amount =
 viewResultsList : Model -> Html Msg
 viewResultsList model =
     let
+        peopleQtt =
+            List.length model.people
+
         totalWithCurrency =
             model.amounts
                 |> List.map
@@ -426,23 +434,35 @@ viewResultsList model =
                     (\amount -> amount.quantity * amount.priceInCents)
                 |> List.sum
 
-        peopleResults =
+        peopleCalcsForItems =
             ({ id = 0, name = "" } :: model.people)
                 |> List.map
                     (\person ->
                         { id = person.id
                         , nameWithDefault = personNameWithDefault person
-                        , totalInCents = personTotalInCents person.id
+                        , subtotalInCents = personTotalInCents person.id
                         }
                     )
-                |> List.filter (\it -> it.id /= 0 || (it.id == 0 && it.totalInCents > 0))
+                |> List.filter (\it -> it.id /= 0 || (it.id == 0 && it.subtotalInCents > 0))
                 |> List.map
                     (\it ->
                         { id = it.id
                         , nameWithDefault = it.nameWithDefault
-                        , totalWithCurrency = centsToPriceWithCurrency it.totalInCents
+                        , subtotalInCents = it.subtotalInCents
+                        , subtotalWithCurrency = centsToPriceWithCurrency it.subtotalInCents
                         }
                     )
+
+        subtotalInCents =
+            peopleCalcsForItems
+                |> List.map (\calcs -> calcs.subtotalInCents)
+                |> List.sum
+
+        totalTip =
+            toFloat subtotalInCents * 0.1
+
+        eachTip =
+            floor (totalTip / (peopleQtt |> toFloat))
     in
     ul
         []
@@ -454,16 +474,19 @@ viewResultsList model =
                         if result.id == 0 then
                             li []
                                 [ em [] [ text "Nobody: " ]
-                                , span [] [ text result.totalWithCurrency ]
+                                , span [] [ text result.subtotalWithCurrency ]
                                 ]
 
                         else
                             li []
-                                [ text (result.nameWithDefault ++ ": " ++ result.totalWithCurrency)
+                                [ text (result.nameWithDefault ++ ": " ++ result.subtotalWithCurrency)
                                 ]
                     )
-                    peopleResults
+                    peopleCalcsForItems
                 )
+            ]
+        , li []
+            [ text ("Each tip (10% divided by " ++ String.fromInt peopleQtt ++ "): " ++ centsToPriceWithCurrency eachTip)
             ]
         ]
 

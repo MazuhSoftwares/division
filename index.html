@@ -5732,19 +5732,21 @@ var $author$project$Main$viewResultsList = function (model) {
 						},
 						model.amounts))));
 	};
-	var peopleResults = A2(
+	var peopleQtt = $elm$core$List$length(model.people);
+	var peopleCalcsForItems = A2(
 		$elm$core$List$map,
 		function (it) {
 			return {
 				id: it.id,
 				nameWithDefault: it.nameWithDefault,
-				totalWithCurrency: $author$project$Main$centsToPriceWithCurrency(it.totalInCents)
+				subtotalInCents: it.subtotalInCents,
+				subtotalWithCurrency: $author$project$Main$centsToPriceWithCurrency(it.subtotalInCents)
 			};
 		},
 		A2(
 			$elm$core$List$filter,
 			function (it) {
-				return (!(!it.id)) || ((!it.id) && (it.totalInCents > 0));
+				return (!(!it.id)) || ((!it.id) && (it.subtotalInCents > 0));
 			},
 			A2(
 				$elm$core$List$map,
@@ -5752,13 +5754,22 @@ var $author$project$Main$viewResultsList = function (model) {
 					return {
 						id: person.id,
 						nameWithDefault: $author$project$Main$personNameWithDefault(person),
-						totalInCents: personTotalInCents(person.id)
+						subtotalInCents: personTotalInCents(person.id)
 					};
 				},
 				A2(
 					$elm$core$List$cons,
 					{id: 0, name: ''},
 					model.people))));
+	var subtotalInCents = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function (calcs) {
+				return calcs.subtotalInCents;
+			},
+			peopleCalcsForItems));
+	var totalTip = subtotalInCents * 0.1;
+	var eachTip = $elm$core$Basics$floor(totalTip / peopleQtt);
 	return A2(
 		$elm$html$Html$ul,
 		_List_Nil,
@@ -5793,17 +5804,25 @@ var $author$project$Main$viewResultsList = function (model) {
 											_List_Nil,
 											_List_fromArray(
 												[
-													$elm$html$Html$text(result.totalWithCurrency)
+													$elm$html$Html$text(result.subtotalWithCurrency)
 												]))
 										])) : A2(
 									$elm$html$Html$li,
 									_List_Nil,
 									_List_fromArray(
 										[
-											$elm$html$Html$text(result.nameWithDefault + (': ' + result.totalWithCurrency))
+											$elm$html$Html$text(result.nameWithDefault + (': ' + result.subtotalWithCurrency))
 										]));
 							},
-							peopleResults))
+							peopleCalcsForItems))
+					])),
+				A2(
+				$elm$html$Html$li,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						'Each tip (10% divided by ' + ($elm$core$String$fromInt(peopleQtt) + ('): ' + $author$project$Main$centsToPriceWithCurrency(eachTip))))
 					]))
 			]));
 };
