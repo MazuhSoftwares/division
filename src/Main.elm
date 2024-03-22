@@ -6,10 +6,6 @@ import Html.Attributes exposing (for, href, id, maxlength, placeholder, step, st
 import Html.Events exposing (onClick, onInput)
 
 
-
--- TODO: each person participation in %
-
-
 main : Program () Model Msg
 main =
     Browser.sandbox { init = init, update = update, view = view }
@@ -231,7 +227,7 @@ view model =
         , section [ id "results" ]
             [ h2 [] [ text "Results" ]
             , p []
-                [ text "Here's how to pay. Percentages may have been rounded."
+                [ text "Here's how to pay. Some values might have been rounded from decimals with too many places."
                 ]
             , viewResultsList model
             ]
@@ -457,13 +453,13 @@ viewResultsList model =
                         , subtotalInCents = personTotalInCents person.id
                         }
                     )
-                |> List.filter (\it -> it.id /= 0 || (it.id == 0 && it.subtotalInCents > 0))
+                |> List.filter (\calcs -> calcs.id /= 0 || (calcs.id == 0 && calcs.subtotalInCents > 0))
                 |> List.map
-                    (\it ->
-                        { id = it.id
-                        , nameWithDefault = it.nameWithDefault
-                        , subtotalInCents = it.subtotalInCents
-                        , subtotalWithCurrency = centsToPriceWithCurrency it.subtotalInCents
+                    (\calcs ->
+                        { id = calcs.id
+                        , nameWithDefault = calcs.nameWithDefault
+                        , subtotalInCents = calcs.subtotalInCents
+                        , subtotalWithCurrency = centsToPriceWithCurrency calcs.subtotalInCents
                         }
                     )
 
@@ -480,6 +476,24 @@ viewResultsList model =
 
         totalInCents =
             subtotalInCents + floor totalTipInCents
+
+        sharingsInPercentage =
+            peopleCalcsForItems
+                |> List.map
+                    (\calcs ->
+                        { id = calcs.id
+                        , nameWithDefault = calcs.nameWithDefault
+                        , percentualInt = floor ((toFloat calcs.subtotalInCents + toFloat eachTipInCents) * 10000 / toFloat totalInCents)
+                        }
+                    )
+                |> List.map
+                    (\calcs ->
+                        { id = calcs.id
+                        , nameWithDefault = calcs.nameWithDefault
+                        , percentualInt = calcs.percentualInt
+                        , percentual = calcs.percentualInt |> fakeIntToDecimalStrOfTwoPlaces
+                        }
+                    )
     in
     ul
         []
@@ -516,6 +530,25 @@ viewResultsList model =
             [ text "Total bill: "
             , strong [] [ text (centsToPriceWithCurrency totalInCents) ]
             ]
+        , li [ style "margin-bottom" "8px" ]
+            [ text "Relative payment share (including tips):"
+            , ul []
+                (List.map
+                    (\result ->
+                        if result.id == 0 then
+                            li []
+                                [ em [] [ text "Everyone: " ]
+                                , span [] [ text (result.percentual ++ "%") ]
+                                ]
+
+                        else
+                            li []
+                                [ text (result.nameWithDefault ++ ": " ++ result.percentual ++ "%")
+                                ]
+                    )
+                    sharingsInPercentage
+                )
+            ]
         ]
 
 
@@ -524,17 +557,25 @@ priceToCents amount =
     floor (amount * 100)
 
 
-centsToPriceString : Int -> String
-centsToPriceString cents =
+centsToPriceWithCurrency : Int -> String
+centsToPriceWithCurrency cents =
+    "$ " ++ fakeIntToDecimalStrOfTwoPlaces cents
+
+
+fakeIntToDecimalStrOfTwoPlaces : Int -> String
+fakeIntToDecimalStrOfTwoPlaces value =
     let
+        isGlitchedNumber =
+            value /= value
+
         whole =
-            cents // 100
+            value // 100
 
         whileStr =
             String.fromInt whole
 
         fractional =
-            cents - (whole * 100)
+            value - (whole * 100)
 
         fractionalStr =
             if fractional < 10 then
@@ -543,12 +584,11 @@ centsToPriceString cents =
             else
                 String.fromInt fractional
     in
-    whileStr ++ "." ++ fractionalStr
+    if isGlitchedNumber then
+        "0.00"
 
-
-centsToPriceWithCurrency : Int -> String
-centsToPriceWithCurrency cents =
-    "$ " ++ centsToPriceString cents
+    else
+        whileStr ++ "." ++ fractionalStr
 
 
 personNameWithDefault : Person -> String

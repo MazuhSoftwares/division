@@ -5673,15 +5673,16 @@ var $author$project$Main$viewPersonItem = function (person) {
 					]))
 			]));
 };
-var $author$project$Main$centsToPriceString = function (cents) {
-	var whole = (cents / 100) | 0;
+var $author$project$Main$fakeIntToDecimalStrOfTwoPlaces = function (value) {
+	var whole = (value / 100) | 0;
 	var whileStr = $elm$core$String$fromInt(whole);
-	var fractional = cents - (whole * 100);
+	var isGlitchedNumber = !_Utils_eq(value, value);
+	var fractional = value - (whole * 100);
 	var fractionalStr = (fractional < 10) ? ('0' + $elm$core$String$fromInt(fractional)) : $elm$core$String$fromInt(fractional);
-	return whileStr + ('.' + fractionalStr);
+	return isGlitchedNumber ? '0.00' : (whileStr + ('.' + fractionalStr));
 };
 var $author$project$Main$centsToPriceWithCurrency = function (cents) {
-	return '$ ' + $author$project$Main$centsToPriceString(cents);
+	return '$ ' + $author$project$Main$fakeIntToDecimalStrOfTwoPlaces(cents);
 };
 var $elm$html$Html$em = _VirtualDom_node('em');
 var $elm$html$Html$li = _VirtualDom_node('li');
@@ -5736,18 +5737,18 @@ var $author$project$Main$viewResultsList = function (model) {
 	var peopleQtt = $elm$core$List$length(model.people);
 	var peopleCalcsForItems = A2(
 		$elm$core$List$map,
-		function (it) {
+		function (calcs) {
 			return {
-				id: it.id,
-				nameWithDefault: it.nameWithDefault,
-				subtotalInCents: it.subtotalInCents,
-				subtotalWithCurrency: $author$project$Main$centsToPriceWithCurrency(it.subtotalInCents)
+				id: calcs.id,
+				nameWithDefault: calcs.nameWithDefault,
+				subtotalInCents: calcs.subtotalInCents,
+				subtotalWithCurrency: $author$project$Main$centsToPriceWithCurrency(calcs.subtotalInCents)
 			};
 		},
 		A2(
 			$elm$core$List$filter,
-			function (it) {
-				return (!(!it.id)) || ((!it.id) && (it.subtotalInCents > 0));
+			function (calcs) {
+				return (!(!calcs.id)) || ((!calcs.id) && (calcs.subtotalInCents > 0));
 			},
 			A2(
 				$elm$core$List$map,
@@ -5772,6 +5773,26 @@ var $author$project$Main$viewResultsList = function (model) {
 	var totalTipInCents = subtotalInCents * 0.1;
 	var totalInCents = subtotalInCents + $elm$core$Basics$floor(totalTipInCents);
 	var eachTipInCents = $elm$core$Basics$floor(totalTipInCents / peopleQtt);
+	var sharingsInPercentage = A2(
+		$elm$core$List$map,
+		function (calcs) {
+			return {
+				id: calcs.id,
+				nameWithDefault: calcs.nameWithDefault,
+				percentual: $author$project$Main$fakeIntToDecimalStrOfTwoPlaces(calcs.percentualInt),
+				percentualInt: calcs.percentualInt
+			};
+		},
+		A2(
+			$elm$core$List$map,
+			function (calcs) {
+				return {
+					id: calcs.id,
+					nameWithDefault: calcs.nameWithDefault,
+					percentualInt: $elm$core$Basics$floor(((calcs.subtotalInCents + eachTipInCents) * 10000) / totalInCents)
+				};
+			},
+			peopleCalcsForItems));
 	return A2(
 		$elm$html$Html$ul,
 		_List_Nil,
@@ -5878,6 +5899,50 @@ var $author$project$Main$viewResultsList = function (model) {
 								$elm$html$Html$text(
 								$author$project$Main$centsToPriceWithCurrency(totalInCents))
 							]))
+					])),
+				A2(
+				$elm$html$Html$li,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'margin-bottom', '8px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Relative payment share (including tips):'),
+						A2(
+						$elm$html$Html$ul,
+						_List_Nil,
+						A2(
+							$elm$core$List$map,
+							function (result) {
+								return (!result.id) ? A2(
+									$elm$html$Html$li,
+									_List_Nil,
+									_List_fromArray(
+										[
+											A2(
+											$elm$html$Html$em,
+											_List_Nil,
+											_List_fromArray(
+												[
+													$elm$html$Html$text('Everyone: ')
+												])),
+											A2(
+											$elm$html$Html$span,
+											_List_Nil,
+											_List_fromArray(
+												[
+													$elm$html$Html$text(result.percentual + '%')
+												]))
+										])) : A2(
+									$elm$html$Html$li,
+									_List_Nil,
+									_List_fromArray(
+										[
+											$elm$html$Html$text(result.nameWithDefault + (': ' + (result.percentual + '%')))
+										]));
+							},
+							sharingsInPercentage))
 					]))
 			]));
 };
@@ -6102,7 +6167,7 @@ var $author$project$Main$view = function (model) {
 						_List_Nil,
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Here\'s how to pay. Percentages may have been rounded.')
+								$elm$html$Html$text('Here\'s how to pay. Some values might have been rounded from decimals with too many places.')
 							])),
 						$author$project$Main$viewResultsList(model)
 					])),
